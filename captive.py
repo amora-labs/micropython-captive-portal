@@ -3,6 +3,8 @@ import network
 import time
 
 ap = network.WLAN(network.AP_IF)
+ap.active(True)
+ap.config(essid="Change my LED", authmode=1)
 
 
 
@@ -61,7 +63,7 @@ def start():
 
     s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     s.bind(addr)
-    s.listen(1)
+    s.listen(3)
     s.setblocking(False)
     print("Listening, connect your browser to http://{}:80/".format(ip))
 
@@ -106,7 +108,7 @@ def start():
             except:
                 print("timeout for web... moving on...")
             print("loop")
-            time.sleep_ms(1000)
+            time.sleep_ms(300)
     except KeyboardInterrupt:
         print('Finalizando')
     udps.close()
