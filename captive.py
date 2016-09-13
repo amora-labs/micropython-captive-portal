@@ -1,10 +1,16 @@
 import socket
 import network
 import time
+import machine
 
 ap = network.WLAN(network.AP_IF)
 ap.active(True)
 ap.config(essid="Change my LED", authmode=1)
+
+# PINs (5, 4, 0)
+p1 = machine.Pin(5, machine.Pin.OUT, machine.Pin.PULL_UP)
+p2 = machine.Pin(4, machine.Pin.OUT, machine.Pin.PULL_UP)
+p3 = machine.Pin(0, machine.Pin.OUT, machine.Pin.PULL_UP)
 
 
 
@@ -39,33 +45,30 @@ class DNSQuery:
       packet+=self.data[12:]                                         # Original Domain Name Question
       packet+= b'\xc0\x0c'                                             # Pointer to domain name
       packet+= b'\x00\x01\x00\x01\x00\x00\x00\x3c\x00\x04'             # Response type, ttl and resource data length -> 4 bytes
-      #packet+=str.join('',[chr(int(x)) for x in ip.split('.')]) # 4bytes of IP
-      packet+=bytes(map(int,ip.split('.')))
+      packet+=bytes(map(int,ip.split('.'))) # 4 bytes of IP
     return packet
 
 def start():
 
-    # DNS Stuff
+    # DNS Server
     ip=ap.ifconfig()[0]
-    print('pyminifakeDNS:: dom.query. 60 IN A {:s}'.format(ip))
+    print('DNS Server: dom.query. 60 IN A {:s}'.format(ip))
 
     udps = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     udps.setblocking(False)
     udps.bind(('',53))
 
-    # Web Stuff
+    # Web Server
     s = socket.socket()
-
-    # Binding to all interfaces - server will be accessible to other hosts!
     ai = socket.getaddrinfo(ip, 80)
-    print("Bind address info:", ai)
+    print("Web Server: Bind address info:", ai)
     addr = ai[0][-1]
 
     s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     s.bind(addr)
     s.listen(3)
     s.setblocking(False)
-    print("Listening, connect your browser to http://{}:80/".format(ip))
+    print("Web Server: Listening http://{}:80/".format(ip))
 
     counter = 0
 
@@ -78,7 +81,7 @@ def start():
                 print("incomming datagram...")
                 p=DNSQuery(data)
                 udps.sendto(p.respuesta(ip), addr)
-                print('Respuesta: {:s} -> {:s}'.format(p.dominio, ip))
+                print('Replying: {:s} -> {:s}'.format(p.dominio, ip))
             except:
                 print("No dgram")
 
@@ -110,5 +113,5 @@ def start():
             print("loop")
             time.sleep_ms(300)
     except KeyboardInterrupt:
-        print('Finalizando')
+        print('Closing')
     udps.close()
