@@ -5,19 +5,46 @@ import machine
 
 ap = network.WLAN(network.AP_IF)
 ap.active(True)
-ap.config(essid="Change my LED", authmode=1)
+ap.config(essid="Change my LED", password="bananabanana", authmode=4) #authmode=1 == no pass
 
 # PINs (5, 4, 0)
-p1 = machine.Pin(5, machine.Pin.OUT, machine.Pin.PULL_UP)
-p2 = machine.Pin(4, machine.Pin.OUT, machine.Pin.PULL_UP)
-p3 = machine.Pin(0, machine.Pin.OUT, machine.Pin.PULL_UP)
+r = machine.Pin(5, machine.Pin.OUT, machine.Pin.PULL_UP)
+g = machine.Pin(4, machine.Pin.OUT, machine.Pin.PULL_UP)
+b = machine.Pin(0, machine.Pin.OUT, machine.Pin.PULL_UP)
+
+r.high()
+g.high()
+b.high()
+
+
 
 
 
 CONTENT = b"""\
 HTTP/1.0 200 OK
 
-Hello #%d from MicroPython!
+<!doctype html>
+<html>
+    <head>
+        <title>MicroPython Captive LED Portal</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta charset="utf8">
+    </head>
+    <body>
+        <h1>Change my LED Color!!!</h1>
+        <p>You are my #{:d} user!</p>
+        <form action="/led">
+            <input type="checkbox" name="r" {}>Red<br>
+            <input type="checkbox" name="g" {}>Green<br>
+            <input type="checkbox" name="b" {}>Blue<br>
+            <input type="submit" value="change">
+        </form>
+
+        <script>
+
+        </script>
+    </body>
+</html>
 """
 
 class DNSQuery:
@@ -74,6 +101,26 @@ def start():
 
     try:
         while 1:
+            # LED Management
+            if r.value() == 1:
+                rv = "checked"
+            else:
+                rv = ""
+            
+            if g.value() == 1:
+                gv = "checked"
+            else:
+                gv = ""
+            
+            if b.value() == 1:
+                bv = "checked"
+            else:
+                bv = ""
+            
+
+
+
+
             # DNS Loop
             print("Before DNS...")
             try:
@@ -101,17 +148,17 @@ def start():
                 print(req)
                 while True:
                     h = client_stream.readline()
-                    if h == b"" or h == b"\r\n":
+                    if h == b"" or h == b"\r\n" or h == None:
                         break
                     print(h)
-                client_stream.write(CONTENT % counter)
+                client_stream.write(CONTENT.format(counter,rv,gv,bv))
 
                 client_stream.close()
                 counter += 1
             except:
                 print("timeout for web... moving on...")
             print("loop")
-            time.sleep_ms(300)
+            time.sleep_ms(600)
     except KeyboardInterrupt:
         print('Closing')
     udps.close()
