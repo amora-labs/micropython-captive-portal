@@ -93,7 +93,7 @@ def start():
 
     s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     s.bind(addr)
-    s.listen(3)
+    s.listen(1)
     s.setblocking(False)
     print("Web Server: Listening http://{}:80/".format(ip))
 
