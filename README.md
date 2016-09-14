@@ -10,3 +10,7 @@ Needs RGB LED connected to ports 5, 4, 0 (These are ESP8266 port numbers not the
 import captive
 captive.start()
 ```
+
+## Video demo
+
+<iframe width="560" height="315" src="https://www.youtube.com/embed/gKbe48fQukc" frameborder="0" allowfullscreen></iframe>
