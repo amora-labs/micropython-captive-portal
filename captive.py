@@ -94,32 +94,14 @@ def start():
     s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     s.bind(addr)
     s.listen(1)
-    s.setblocking(False)
+    s.settimeout(2)
     print("Web Server: Listening http://{}:80/".format(ip))
 
     counter = 0
 
     try:
         while 1:
-            # LED Management
-            if r.value() == 1:
-                rv = "checked"
-            else:
-                rv = ""
-            
-            if g.value() == 1:
-                gv = "checked"
-            else:
-                gv = ""
-            
-            if b.value() == 1:
-                bv = "checked"
-            else:
-                bv = ""
-            
-
-
-
+           
 
             # DNS Loop
             print("Before DNS...")
@@ -138,8 +120,8 @@ def start():
                 res = s.accept()
                 client_sock = res[0]
                 client_addr = res[1]
-                print("Client address:", client_addr)
-                print("Client socket:", client_sock)
+                #print("Client address:", client_addr)
+                #print("Client socket:", client_sock)
 
                 client_stream = client_sock
 
@@ -151,6 +133,49 @@ def start():
                     if h == b"" or h == b"\r\n" or h == None:
                         break
                     print(h)
+                
+                # Change LED based on request variables
+                request_url = req[4:-11]
+                api = request_url[:5]
+                if api == b'/led?':
+                    params = request_url[5:]
+                    try:
+                        d = {key: value for (key, value) in [x.split(b'=') for x in params.split(b'&')]}
+                    except:
+                        d = {}
+
+                    if  b'b' in d.keys():
+                        b.high()
+                    else:
+                        b.low()
+
+                    if b'r' in d.keys():
+                        r.high()
+                    else:
+                        r.low()
+
+                    if b'g' in d.keys():
+                        g.high()
+                    else:
+                        g.low()
+
+                # Respond
+                # LED Management
+                if r.value() == 1:
+                    rv = "checked"
+                else:
+                    rv = ""
+                
+                if g.value() == 1:
+                    gv = "checked"
+                else:
+                    gv = ""
+                
+                if b.value() == 1:
+                    bv = "checked"
+                else:
+                    bv = ""
+
                 client_stream.write(CONTENT.format(counter,rv,gv,bv))
 
                 client_stream.close()
@@ -158,7 +183,7 @@ def start():
             except:
                 print("timeout for web... moving on...")
             print("loop")
-            time.sleep_ms(600)
+            time.sleep_ms(300)
     except KeyboardInterrupt:
         print('Closing')
     udps.close()
